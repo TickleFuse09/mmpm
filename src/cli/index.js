@@ -14,9 +14,16 @@ program
 program
   .command("search <modName>")
   .description("Search a mod and show details")
-  .action(async (modName) => {
+  .option("-l, --loader <loader>", "mod loader (fabric/forge)")
+  .option("-v, --version <mcVersion>", "minecraft version")
+  .action(async (modName, options) => {
     try {
-      const mod = await modService.getModDetails(modName);
+      const filters = {
+        loader: options.loader,
+        mcVersion: options.version,
+      };
+
+      const mod = await modService.getModDetails(modName, filters);
       printModDetails(mod);
     } catch (err) {
       console.error("❌ Error:", err.message);

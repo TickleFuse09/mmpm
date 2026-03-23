@@ -11,11 +11,27 @@ export async function getModDetails(query, filters = {}) {
 
   const versions = await getProjectVersions(mod.project_id, filters);
 
+  const filteredVersions = versions.filter((v) => {
+    const loaderMatch = filters.loader
+      ? v.loaders.includes(filters.loader)
+      : true;
+
+    const versionMatch = filters.mcVersion
+      ? v.game_versions.includes(filters.mcVersion)
+      : true;
+
+    return loaderMatch && versionMatch;
+  });
+
+  if (filteredVersions.length === 0) {
+    throw new Error("No versions found matching given filters");
+  }
+
   return {
     name: mod.title,
     slug: mod.slug,
     description: mod.description,
-    latestVersions: versions.slice(0, 5).map((v) => ({
+    latestVersions: filteredVersions.slice(0, 5).map((v) => ({
       version: v.name,
       loaders: v.loaders,
       gameVersions: v.game_versions,
