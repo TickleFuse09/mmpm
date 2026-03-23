@@ -4,15 +4,15 @@ const visited = new Set();
 const projectCache = new Map();
 const modCache = new Map();
 
-export async function buildDependencyGraph(modService, modSlug) {
+export async function buildDependencyGraph(modService, modSlug, filters = {}) {
   visited.clear();
 
-  const root = await resolveNode(modService, modSlug);
+  const root = await resolveNode(modService, modSlug, filters);
 
   return root;
 }
 
-async function resolveNode(modService, modSlug) {
+async function resolveNode(modService, modSlug, filters) {
   if (visited.has(modSlug)) {
     return { name: modSlug, circular: true };
   }
@@ -24,7 +24,7 @@ async function resolveNode(modService, modSlug) {
   if (modCache.has(modSlug)) {
     mod = modCache.get(modSlug);
   } else {
-    mod = await modService.getModDetails(modSlug);
+    mod = await modService.getModDetails(modSlug, filters);
     modCache.set(modSlug, mod);
   }
 
@@ -51,7 +51,7 @@ async function resolveNode(modService, modSlug) {
           projectCache.set(dep.project_id, project);
         }
 
-        return await resolveNode(modService, project.slug);
+        return await resolveNode(modService, project.slug, filters);
       } catch (err) {
         return {
           name: dep.project_id,

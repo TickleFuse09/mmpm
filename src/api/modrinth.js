@@ -13,9 +13,15 @@ export async function searchMods(query) {
   }
 }
 
-export async function getProjectVersions(projectId) {
+export async function getProjectVersions(projectId, filters = {}) {
   try {
-    const res = await axios.get(`${BASE_URL}/project/${projectId}/version`);
+    const res = await axios.get(`${BASE_URL}/project/${projectId}/version`, {
+      params: {
+        loaders: filters.loader ? [filters.loader] : undefined,
+        game_versions: filters.mcVersion ? [filters.mcVersion] : undefined,
+      },
+    });
+
     return res.data;
   } catch (err) {
     throw new Error("Failed to fetch versions");

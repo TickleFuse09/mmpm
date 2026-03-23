@@ -1,6 +1,6 @@
 import { searchMods, getProjectVersions } from "../api/modrinth.js";
 
-export async function getModDetails(query) {
+export async function getModDetails(query, filters = {}) {
   const results = await searchMods(query);
 
   if (!results.length) {
@@ -9,7 +9,7 @@ export async function getModDetails(query) {
 
   const mod = results[0];
 
-  const versions = await getProjectVersions(mod.project_id);
+  const versions = await getProjectVersions(mod.project_id, filters);
 
   return {
     name: mod.title,

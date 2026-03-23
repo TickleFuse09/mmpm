@@ -25,10 +25,16 @@ program
 
 program
   .command("graph <modName>")
-  .description("Build dependency graph for a mod")
-  .action(async (modName) => {
+  .option("-l, --loader <loader>", "mod loader (fabric/forge)")
+  .option("-v, --version <mcVersion>", "minecraft version")
+  .action(async (modName, options) => {
     try {
-      const graph = await buildDependencyGraph(modService, modName);
+      const filters = {
+        loader: options.loader,
+        mcVersion: options.version,
+      };
+
+      const graph = await buildDependencyGraph(modService, modName, filters);
       printGraph(graph);
     } catch (err) {
       console.error("❌ Error:", err.message);
