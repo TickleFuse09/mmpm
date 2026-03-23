@@ -7,7 +7,10 @@ export async function getModDetails(query, filters = {}) {
     throw new Error("No mods found");
   }
 
-  const mod = results[0];
+  let mod =
+  results.find((m) => m.slug.toLowerCase() === query.toLowerCase()) ||
+  results.find((m) => m.title.toLowerCase() === query.toLowerCase()) ||
+  results[0];
 
   const versions = await getProjectVersions(mod.project_id, filters);
 

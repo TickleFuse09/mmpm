@@ -1,7 +1,7 @@
 {
-  "name": "mod-packer-engine",
+  "name": "mpe",
   "version": "1.0.0",
-  "description": "Intelligent Minecraft Modpack Builder",
+  "description": "Mod Packer Engine (MPE) - Intelligent Minecraft Modpack Builder",
   "license": "ISC",
   "author": "",
   "type": "module",
