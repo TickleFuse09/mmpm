@@ -25,16 +25,32 @@ export async function getModDetails(query, filters = {}) {
 
   if (filteredVersions.length === 0) {
     const availableLoaders = new Set();
+    const availableVersions = new Set();
 
     versions.forEach((v) => {
       v.loaders.forEach((l) => availableLoaders.add(l));
+      v.game_versions.forEach((gv) => availableVersions.add(gv));
     });
 
-    throw new Error(
-      `No versions found for given filters.\nSupported loaders: ${[
-        ...availableLoaders,
-      ].join(", ")}`
-    );
+    const loaderIssue =
+      filters.loader && ![...availableLoaders].includes(filters.loader);
+
+    const versionIssue =
+      filters.mcVersion && ![...availableVersions].includes(filters.mcVersion);
+
+    let message = "No versions found for given filters.\n";
+
+    if (loaderIssue) {
+      message += `Supported loaders: ${[...availableLoaders].join(", ")}\n`;
+    }
+
+    if (versionIssue) {
+      message += `Supported Minecraft versions: ${[...availableVersions]
+        .slice(0, 10)
+        .join(", ")}...\n`;
+    }
+
+    throw new Error(message.trim());
   }
 
   return {
