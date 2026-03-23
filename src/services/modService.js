@@ -24,7 +24,17 @@ export async function getModDetails(query, filters = {}) {
   });
 
   if (filteredVersions.length === 0) {
-    throw new Error("No versions found matching given filters");
+    const availableLoaders = new Set();
+
+    versions.forEach((v) => {
+      v.loaders.forEach((l) => availableLoaders.add(l));
+    });
+
+    throw new Error(
+      `No versions found for given filters.\nSupported loaders: ${[
+        ...availableLoaders,
+      ].join(", ")}`
+    );
   }
 
   return {
