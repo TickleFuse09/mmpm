@@ -38,31 +38,29 @@ async function resolveNode(modService, modSlug) {
 
   if (!latest || !latest.dependencies) return node;
 
-  for (const dep of latest.dependencies) {
-    if (!dep.project_id) continue;
+  const dependencyPromises = latest.dependencies
+    .filter((dep) => dep.project_id && dep.dependency_type === "required")
+    .map(async (dep) => {
+      try {
+        let project;
 
-    if (dep.dependency_type !== "required") continue;
+        if (projectCache.has(dep.project_id)) {
+          project = projectCache.get(dep.project_id);
+        } else {
+          project = await getProject(dep.project_id);
+          projectCache.set(dep.project_id, project);
+        }
 
-    try {
-      let project;
-
-      if (projectCache.has(dep.project_id)) {
-        project = projectCache.get(dep.project_id);
-      } else {
-        project = await getProject(dep.project_id);
-        projectCache.set(dep.project_id, project);
+        return await resolveNode(modService, project.slug);
+      } catch (err) {
+        return {
+          name: dep.project_id,
+          error: true,
+        };
       }
+    });
 
-      const child = await resolveNode(modService, project.slug);
-
-      node.dependencies.push(child);
-    } catch (err) {
-      node.dependencies.push({
-        name: dep.project_id,
-        error: true,
-      });
-    }
-  }
+  node.dependencies = await Promise.all(dependencyPromises);
 
   return node;
 }
