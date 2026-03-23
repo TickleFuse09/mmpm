@@ -8,6 +8,7 @@ import { printGraph } from "../utils/graphPrinter.js";
 import { addMod } from "../services/modpackService.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { getModpack } from "../core/modpack.js";
+import { resolveBestCombination } from "../engine/resolver.js";
 
 program
   .name("mpe")
@@ -101,6 +102,17 @@ program
               ...result.commonVersions,
             ].slice(0, 5).join(", ")}\n`
           );
+        }
+
+        // 🔽 AUTO RESOLUTION
+        const best = resolveBestCombination(result);
+
+        if (best) {
+          console.log("🚀 Suggested setup:");
+          console.log(`- Loader: ${best.loader}`);
+          console.log(`- Minecraft Version: ${best.mcVersion}\n`);
+        } else {
+          console.log("❌ Cannot auto-resolve due to conflicts\n");
         }
       }
     } catch (err) {
