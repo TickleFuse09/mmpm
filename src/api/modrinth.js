@@ -21,3 +21,12 @@ export async function getProjectVersions(projectId) {
     throw new Error("Failed to fetch versions");
   }
 }
+
+export async function getProject(projectId) {
+  try {
+    const res = await axios.get(`${BASE_URL}/project/${projectId}`);
+      return res.data;
+  } catch (err) {
+      throw new Error("Failed to fetch project");
+  }
+}

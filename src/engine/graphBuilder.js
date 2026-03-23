@@ -1,3 +1,5 @@
+import { getProject } from "../api/modrinth.js";
+
 const visited = new Set();
 
 export async function buildDependencyGraph(modService, modSlug) {
@@ -30,8 +32,13 @@ async function resolveNode(modService, modSlug) {
   for (const dep of latest.dependencies) {
     if (!dep.project_id) continue;
 
+    if (dep.dependency_type !== "required") continue;
+
     try {
-      const child = await resolveNode(modService, dep.project_id);
+      const project = await getProject(dep.project_id);
+
+      const child = await resolveNode(modService, project.slug);
+
       node.dependencies.push(child);
     } catch (err) {
       node.dependencies.push({
