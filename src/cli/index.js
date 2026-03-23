@@ -65,8 +65,9 @@ program
       if (modpack.mods.length > 1) {
         const result = await detectLoaderConflicts(modpack.mods);
 
+        // 🔽 LOADER OUTPUT
         if (result.commonLoaders.size === 0) {
-          console.log("\n⚠ Conflict detected:");
+          console.log("\n⚠ Loader conflict detected:");
 
           result.loaderSets.forEach((entry) => {
             console.log(
@@ -79,7 +80,26 @@ program
           console.log(
             `\n✔ Compatible loaders: ${[
               ...result.commonLoaders,
-            ].join(", ")}\n`
+            ].join(", ")}`
+          );
+        }
+
+        // 🔽 VERSION OUTPUT
+        if (result.commonVersions.size === 0) {
+          console.log("\n⚠ Minecraft version conflict detected:");
+
+          result.loaderSets.forEach((entry) => {
+            console.log(
+              `- ${entry.mod} → ${[...entry.mcVersions].slice(0, 5).join(", ")}...`
+            );
+          });
+
+          console.log("❌ No common Minecraft version\n");
+        } else {
+          console.log(
+            `\n✔ Compatible Minecraft versions: ${[
+              ...result.commonVersions,
+            ].slice(0, 5).join(", ")}\n`
           );
         }
       }

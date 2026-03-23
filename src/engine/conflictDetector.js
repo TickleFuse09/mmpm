@@ -11,28 +11,38 @@ export async function detectLoaderConflicts(modSlugs) {
     const versions = await getProjectVersions(projectId);
 
     const loaders = new Set();
+    const mcVersions = new Set();
 
     versions.forEach((v) => {
       v.loaders.forEach((l) => loaders.add(l));
+      v.game_versions.forEach((gv) => mcVersions.add(gv));
     });
 
     loaderSets.push({
       mod: slug,
       loaders,
+      mcVersions,
     });
   }
 
   // 🔥 find intersection
   let commonLoaders = new Set(loaderSets[0]?.loaders || []);
+  let commonVersions = new Set(loaderSets[0]?.mcVersions || []);
 
   for (const entry of loaderSets.slice(1)) {
     commonLoaders = new Set(
       [...commonLoaders].filter((l) => entry.loaders.has(l))
+    );
+
+    commonVersions = new Set(
+      [...commonVersions].filter((v) => entry.mcVersions.has(v))
     );
   }
 
   return {
     loaderSets,
     commonLoaders,
+    commonVersions,
   };
 }
+
