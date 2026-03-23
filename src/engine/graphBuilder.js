@@ -1,6 +1,8 @@
 import { getProject } from "../api/modrinth.js";
 
 const visited = new Set();
+const projectCache = new Map();
+const modCache = new Map();
 
 export async function buildDependencyGraph(modService, modSlug) {
   visited.clear();
@@ -17,7 +19,14 @@ async function resolveNode(modService, modSlug) {
 
   visited.add(modSlug);
 
-  const mod = await modService.getModDetails(modSlug);
+  let mod;
+
+  if (modCache.has(modSlug)) {
+    mod = modCache.get(modSlug);
+  } else {
+    mod = await modService.getModDetails(modSlug);
+    modCache.set(modSlug, mod);
+  }
 
   const latest = mod.latestVersions[0];
 
@@ -35,7 +44,14 @@ async function resolveNode(modService, modSlug) {
     if (dep.dependency_type !== "required") continue;
 
     try {
-      const project = await getProject(dep.project_id);
+      let project;
+
+      if (projectCache.has(dep.project_id)) {
+        project = projectCache.get(dep.project_id);
+      } else {
+        project = await getProject(dep.project_id);
+        projectCache.set(dep.project_id, project);
+      }
 
       const child = await resolveNode(modService, project.slug);
 

@@ -1,20 +1,20 @@
-export function printGraph(node, indent = "") {
-  console.log(indent + node.name);
+// 🔽 FULL REPLACEMENT
+export function printGraph(node, prefix = "", isLast = true) {
+  const connector = prefix ? (isLast ? "└── " : "├── ") : "";
+
+  console.log(prefix + connector + node.name);
 
   if (node.circular) {
-    console.log(indent + "  ↺ circular dependency");
+    console.log(prefix + (isLast ? "    " : "│   ") + "↺ circular dependency");
     return;
   }
 
   if (!node.dependencies || node.dependencies.length === 0) return;
 
+  const newPrefix = prefix + (isLast ? "    " : "│   ");
+
   node.dependencies.forEach((dep, index) => {
-    const isLast = index === node.dependencies.length - 1;
-
-    const prefix = isLast ? "└── " : "├── ";
-    const nextIndent = indent + (isLast ? "    " : "│   ");
-
-    process.stdout.write(indent + prefix);
-    printGraph(dep, nextIndent);
+    const last = index === node.dependencies.length - 1;
+    printGraph(dep, newPrefix, last);
   });
 }
