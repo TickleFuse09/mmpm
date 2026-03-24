@@ -1,48 +1,57 @@
-import { getProjectVersions, getProject, searchMods } from "../api/modrinth.js";
+import { getProjectVersions } from "../api/modrinth.js";
+import { resolveProject } from "../services/modService.js";
 
-// 🔥 Extract loaders per mod
 export async function detectLoaderConflicts(modSlugs) {
   const loaderSets = [];
 
   for (const slug of modSlugs) {
-    const results = await searchMods(slug);
-    const projectId = results[0]?.project_id;
-
-    const versions = await getProjectVersions(projectId);
+    const project = await resolveProject(slug);
+    const versions = await getProjectVersions(project.project_id);
 
     const loaders = new Set();
     const mcVersions = new Set();
+    const combos = new Set();
 
-    versions.forEach((v) => {
-      v.loaders.forEach((l) => loaders.add(l));
-      v.game_versions.forEach((gv) => mcVersions.add(gv));
+    versions.forEach((version) => {
+      version.loaders.forEach((loader) => loaders.add(loader));
+      version.game_versions.forEach((mcVersion) => {
+        mcVersions.add(mcVersion);
+
+        version.loaders.forEach((loader) => {
+          combos.add(`${loader}|${mcVersion}`);
+        });
+      });
     });
 
     loaderSets.push({
       mod: slug,
       loaders,
       mcVersions,
+      combos,
     });
   }
 
-  // 🔥 find intersection
-  let commonLoaders = new Set(loaderSets[0]?.loaders || []);
-  let commonVersions = new Set(loaderSets[0]?.mcVersions || []);
+  let commonCombos = new Set(loaderSets[0]?.combos || []);
 
   for (const entry of loaderSets.slice(1)) {
-    commonLoaders = new Set(
-      [...commonLoaders].filter((l) => entry.loaders.has(l))
-    );
-
-    commonVersions = new Set(
-      [...commonVersions].filter((v) => entry.mcVersions.has(v))
+    commonCombos = new Set(
+      [...commonCombos].filter((combo) => entry.combos.has(combo))
     );
   }
+
+  const commonLoaders = new Set();
+  const commonVersions = new Set();
+
+  commonCombos.forEach((combo) => {
+    const [loader, mcVersion] = combo.split("|");
+    commonLoaders.add(loader);
+    commonVersions.add(mcVersion);
+  });
 
   return {
     loaderSets,
     commonLoaders,
     commonVersions,
+    commonCombos,
   };
 }
-

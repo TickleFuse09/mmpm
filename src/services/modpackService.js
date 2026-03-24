@@ -2,14 +2,12 @@ import { addToModpack, getModpack } from "../core/modpack.js";
 import { getModDetails } from "./modService.js";
 
 export async function addMod(modName) {
-  // prevent duplicates
+  const mod = await getModDetails(modName);
   const modpack = getModpack();
-  if (modpack.mods.includes(modName)) {
+
+  if (modpack.mods.includes(mod.slug)) {
     throw new Error("Mod already added");
   }
-
-  // fetch mod details
-  const mod = await getModDetails(modName);
 
   addToModpack(mod.slug);
 

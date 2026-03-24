@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 export function printModDetails(mod) {
-  console.log(chalk.green(`\n📦 ${mod.name}`));
+  console.log(chalk.green(`\nPackage: ${mod.name}`));
   console.log(chalk.gray(mod.description));
 
   console.log(chalk.yellow("\nLatest Versions:\n"));
@@ -12,13 +12,13 @@ export function printModDetails(mod) {
     console.log(`  MC Versions: ${v.gameVersions.join(", ")}`);
 
     if (v.dependencies.length > 0) {
-      console.log(`  Dependencies:`);
+      console.log("  Dependencies:");
 
       v.dependencies.forEach((dep) => {
         console.log(`    - ${dep.project_id || dep.version_id}`);
       });
     } else {
-      console.log(`  Dependencies: None`);
+      console.log("  Dependencies: None");
     }
 
     console.log("");

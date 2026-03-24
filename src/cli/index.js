@@ -8,7 +8,7 @@ import { printGraph } from "../utils/graphPrinter.js";
 import { addMod } from "../services/modpackService.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { getModpack } from "../core/modpack.js";
-import { resolveBestCombination } from "../engine/resolver.js";
+import { resolveFullModpack, resolveBestCombination } from "../engine/resolver.js";
 
 program
   .name("mpe")
@@ -30,7 +30,7 @@ program
       const mod = await modService.getModDetails(modName, filters);
       printModDetails(mod);
     } catch (err) {
-      console.error("❌ Error:", err.message);
+      console.error("[ERROR]", err.message);
     }
   });
 
@@ -48,7 +48,7 @@ program
       const graph = await buildDependencyGraph(modService, modName, filters);
       printGraph(graph);
     } catch (err) {
-      console.error("❌ Error:", err.message);
+      console.error("[ERROR]", err.message);
     }
   });
 
@@ -59,64 +59,86 @@ program
     try {
       const mod = await addMod(modName);
 
-      console.log(`✅ Added: ${mod.name}`);
+      console.log(`[OK] Added: ${mod.name}`);
 
       const modpack = getModpack();
 
       if (modpack.mods.length > 1) {
         const result = await detectLoaderConflicts(modpack.mods);
 
-        // 🔽 LOADER OUTPUT
         if (result.commonLoaders.size === 0) {
-          console.log("\n⚠ Loader conflict detected:");
+          console.log("\n[WARN] Loader conflict detected:");
 
           result.loaderSets.forEach((entry) => {
-            console.log(
-              `- ${entry.mod} → ${[...entry.loaders].join(", ")}`
-            );
+            console.log(`- ${entry.mod} -> ${[...entry.loaders].join(", ")}`);
           });
 
-          console.log("❌ No common loader\n");
+          console.log("[ERROR] No common loader\n");
         } else {
           console.log(
-            `\n✔ Compatible loaders: ${[
-              ...result.commonLoaders,
-            ].join(", ")}`
+            `\n[OK] Compatible loaders: ${[...result.commonLoaders].join(", ")}`
           );
         }
 
-        // 🔽 VERSION OUTPUT
         if (result.commonVersions.size === 0) {
-          console.log("\n⚠ Minecraft version conflict detected:");
+          console.log("\n[WARN] Minecraft version conflict detected:");
 
           result.loaderSets.forEach((entry) => {
             console.log(
-              `- ${entry.mod} → ${[...entry.mcVersions].slice(0, 5).join(", ")}...`
+              `- ${entry.mod} -> ${[...entry.mcVersions].slice(0, 5).join(", ")}...`
             );
           });
 
-          console.log("❌ No common Minecraft version\n");
+          console.log("[ERROR] No common Minecraft version\n");
         } else {
           console.log(
-            `\n✔ Compatible Minecraft versions: ${[
-              ...result.commonVersions,
-            ].slice(0, 5).join(", ")}\n`
+            `\n[OK] Compatible Minecraft versions: ${[...result.commonVersions]
+              .slice(0, 5)
+              .join(", ")}\n`
           );
         }
 
-        // 🔽 AUTO RESOLUTION
         const best = resolveBestCombination(result);
 
         if (best) {
-          console.log("🚀 Suggested setup:");
+          console.log("[OK] Suggested setup:");
           console.log(`- Loader: ${best.loader}`);
           console.log(`- Minecraft Version: ${best.mcVersion}\n`);
         } else {
-          console.log("❌ Cannot auto-resolve due to conflicts\n");
+          console.log("[ERROR] Cannot auto-resolve due to conflicts\n");
         }
       }
     } catch (err) {
-      console.error("❌ Error:", err.message);
+      console.error("[ERROR]", err.message);
+    }
+  });
+
+program
+  .command("resolve")
+  .description("Resolve full modpack with best versions")
+  .action(async () => {
+    try {
+      const modpack = getModpack();
+
+      const result = await resolveFullModpack(modpack.mods);
+
+      if (!result) {
+        console.log("[ERROR] No compatible configuration found\n");
+        return;
+      }
+
+      console.log("\n[OK] Final Modpack:\n");
+      console.log(`Loader: ${result.loader}`);
+      console.log(`Minecraft: ${result.mcVersion}\n`);
+
+      console.log("Mods:");
+      Object.entries(result.mods).forEach(([mod, version]) => {
+        console.log(`- ${mod} -> ${version}`);
+      });
+
+      console.log("");
+    } catch (err) {
+      console.error("[ERROR]", err.message);
     }
   });
 

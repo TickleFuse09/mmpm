@@ -1,16 +1,21 @@
 import { searchMods, getProjectVersions } from "../api/modrinth.js";
 
-export async function getModDetails(query, filters = {}) {
+export async function resolveProject(query) {
   const results = await searchMods(query);
 
   if (!results.length) {
     throw new Error("No mods found");
   }
 
-  let mod =
-  results.find((m) => m.slug.toLowerCase() === query.toLowerCase()) ||
-  results.find((m) => m.title.toLowerCase() === query.toLowerCase()) ||
-  results[0];
+  return (
+    results.find((mod) => mod.slug.toLowerCase() === query.toLowerCase()) ||
+    results.find((mod) => mod.title.toLowerCase() === query.toLowerCase()) ||
+    results[0]
+  );
+}
+
+export async function getModDetails(query, filters = {}) {
+  const mod = await resolveProject(query);
 
   const versions = await getProjectVersions(mod.project_id, filters);
 
@@ -56,15 +61,23 @@ export async function getModDetails(query, filters = {}) {
     throw new Error(message.trim());
   }
 
+  const latestVersions = [...filteredVersions]
+    .sort(
+      (a, b) =>
+        new Date(b.date_published || 0).getTime() -
+        new Date(a.date_published || 0).getTime()
+    )
+    .slice(0, 5);
+
   return {
     name: mod.title,
     slug: mod.slug,
     description: mod.description,
-    latestVersions: filteredVersions.slice(0, 5).map((v) => ({
+    latestVersions: latestVersions.map((v) => ({
       version: v.name,
       loaders: v.loaders,
       gameVersions: v.game_versions,
-      dependencies: v.dependencies,
+      dependencies: v.dependencies || [],
     })),
   };
 }
