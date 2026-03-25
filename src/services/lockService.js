@@ -167,6 +167,7 @@ async function resolveDependenciesRecursive(
 /**
  * Ensure loader-specific implicit mods are present in lock list.
  * For fabric this adds fabric-api if missing.
+ * For quilt this adds quilted-fabric-api if missing.
  * @param {Array} mods - Current lock mods array
  * @param {string} loader
  * @param {string} mcVersion
@@ -174,29 +175,43 @@ async function resolveDependenciesRecursive(
  * @returns {Promise<Array>} mod entries (possibly modified)
  */
 async function ensureImplicitDependencies(mods, loader, mcVersion, versionCache) {
-  if (!loader || loader.toLowerCase() !== "fabric") {
+  if (!loader) {
+    return mods;
+  }
+
+  const implicitByLoader = {
+    fabric: "fabric-api",
+    quilt: "quilted-fabric-api",
+  };
+
+  const normalizedLoader = loader.toLowerCase();
+  const requiredSlug = implicitByLoader[normalizedLoader];
+
+  if (!requiredSlug) {
     return mods;
   }
 
   const normalized = (slug) => String(slug || "").toLowerCase();
-  const hasFabricApi = mods.some(
-    (m) => normalized(m.slug) === "fabric-api" || normalized(m.project_id) === "fabric-api"
+  const hasImplicit = mods.some(
+    (m) =>
+      normalized(m.slug) === requiredSlug ||
+      normalized(m.project_id) === requiredSlug
   );
 
-  if (hasFabricApi) {
+  if (hasImplicit) {
     return mods;
   }
 
-  // Find fabric-api project
-  let fabricApiProject;
+  // Find implicit project by slug
+  let implicitProject;
   try {
-    fabricApiProject = await resolveProject("fabric-api");
+    implicitProject = await resolveProject(requiredSlug);
   } catch (err) {
-    console.warn(`Warning: Could not resolve fabric-api project: ${err.message}`);
+    console.warn(`Warning: Could not resolve ${requiredSlug} project: ${err.message}`);
     return mods;
   }
 
-  const projectId = fabricApiProject.project_id;
+  const projectId = implicitProject.project_id;
   let versions = versionCache.get(projectId);
   if (!versions) {
     versions = await getProjectVersions(projectId);
@@ -210,7 +225,7 @@ async function ensureImplicitDependencies(mods, loader, mcVersion, versionCache)
 
   if (matchingVersions.length === 0) {
     console.warn(
-      `Warning: No fabric-api version found for loader=${loader}, mcVersion=${mcVersion}`
+      `Warning: No ${requiredSlug} version found for loader=${loader}, mcVersion=${mcVersion}`
     );
     return mods;
   }
@@ -229,8 +244,8 @@ async function ensureImplicitDependencies(mods, loader, mcVersion, versionCache)
     versionCache
   );
 
-  const fabricApiEntry = {
-    slug: fabricApiProject.slug,
+  const implicitEntry = {
+    slug: implicitProject.slug,
     project_id: projectId,
     version_id: best.id,
     version_number: best.version_number,
@@ -238,7 +253,7 @@ async function ensureImplicitDependencies(mods, loader, mcVersion, versionCache)
     dependencies,
   };
 
-  return [...mods, fabricApiEntry];
+  return [...mods, implicitEntry];
 }
 
 /**
