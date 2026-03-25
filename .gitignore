@@ -2,3 +2,4 @@ node_modules/
 modpack.json
 modpack-lock.json
 mods/
+test/

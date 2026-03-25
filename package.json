@@ -1,12 +1,12 @@
 {
-  "name": "mpe",
+  "name": "packsmith",
   "version": "1.0.0",
   "description": "Mod Packer Engine (MPE) - Intelligent Minecraft Modpack Builder",
   "license": "ISC",
   "author": "",
   "type": "module",
   "bin": {
-    "mpe": "./src/cli/index.js"
+    "packsmith": "./src/cli/index.js"
   },
   "main": "index.js",
   "scripts": {

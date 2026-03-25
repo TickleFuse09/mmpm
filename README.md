@@ -19,8 +19,8 @@ without worrying about compatibility.
 ## 📦 Installation
 
 ``` bash
-git clone https://github.com/your-username/mpe.git
-cd mpe
+git clone https://github.com/your-username/packsmith.git
+cd packsmith
 npm install
 npm link
 ```
@@ -28,7 +28,7 @@ npm link
 Now you can use:
 
 ``` bash
-mpe
+packsmith
 ```
 
 ------------------------------------------------------------------------
@@ -36,12 +36,12 @@ mpe
 ## ⚡ Quick Start
 
 ``` bash
-mpe init -y
-mpe add sodium
-mpe add lithium
-mpe resolve
-mpe lock
-mpe install
+packsmith init -y
+packsmith add sodium
+packsmith add lithium
+packsmith resolve
+packsmith lock
+packsmith install
 ```
 
 ------------------------------------------------------------------------
@@ -56,12 +56,12 @@ mpe install
 
   Command                     Description
   --------------------------- ----------------------------
-  mpe init                    Initialize modpack
-  mpe add `<mod>`{=html}      Add mod
-  mpe search `<mod>`{=html}   Search mods
-  mpe resolve                 Resolve best configuration
-  mpe lock                    Generate lock file
-  mpe install                 Install mods
+  packsmith init                    Initialize modpack
+  packsmith add `<mod>`{=html}      Add mod
+  packsmith search `<mod>`{=html}   Search mods
+  packsmith resolve                 Resolve best configuration
+  packsmith lock                    Generate lock file
+  packsmith install                 Install mods
 
 ------------------------------------------------------------------------
 

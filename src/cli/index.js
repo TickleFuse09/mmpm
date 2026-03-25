@@ -16,7 +16,7 @@ import * as searchService from "../services/searchService.js";
 import { printGraph } from "../utils/graphPrinter.js";
 
 program
-  .name("mpe")
+  .name("packsmith")
   .description("Mod Packer Engine CLI")
   .version("1.0.0");
 
@@ -92,7 +92,7 @@ program
   .action(async (modName) => {
     try {
       if (!isModpackInitialized()) {
-        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'packsmith init' first");
         return;
       }
 
@@ -159,7 +159,7 @@ program
   .action(async () => {
     try {
       if (!isModpackInitialized()) {
-        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'packsmith init' first");
         return;
       }
 
@@ -200,7 +200,7 @@ program
   .action(async () => {
     try {
       if (!isModpackInitialized()) {
-        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'packsmith init' first");
         return;
       }
 

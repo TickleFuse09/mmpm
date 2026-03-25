@@ -140,7 +140,7 @@ export async function installMods() {
   // Check if lock file exists
   const lockFile = loadLockFile();
   if (!lockFile) {
-    throw new Error("Run 'mpe lock' first");
+    throw new Error("Run 'packsmith lock' first");
   }
 
   if (!lockFile.mods || !Array.isArray(lockFile.mods)) {
