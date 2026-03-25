@@ -3,7 +3,8 @@ import { resolveProject } from "../services/modService.js";
 
 function isMinecraftVersion(version) {
   if (typeof version !== "string") return false;
-  return /^1(?:\.\d+){1,2}$/.test(version);
+  // valid Minecraft versions: allow patterns like 1.XX, 1.XX.X, XX.X, etc.
+  return /^\d+(?:\.\d+){1,2}$/.test(version);
 }
 
 export async function detectLoaderConflicts(modSlugs) {

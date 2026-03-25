@@ -25,8 +25,8 @@ export function resolveBestCombination(conflictResult) {
 
 function isMinecraftVersion(version) {
   if (typeof version !== "string") return false;
-  // valid pure Minecraft versions (1.XX or 1.XX.X), reject loader versions like 26.1.
-  return /^1(?:\.\d+){1,2}$/.test(version);
+  // valid Minecraft versions: allow patterns like 1.XX, 1.XX.X, XX.X, etc.
+  return /^\d+(?:\.\d+){1,2}$/.test(version);
 }
 
 function getStableVersions(versions) {
