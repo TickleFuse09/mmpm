@@ -1,41 +1,62 @@
-# 🚀 MMPM (Minecraft Mod Package Manager)
+# 🚀 MMPM — Minecraft Mod Package Manager
 
-A powerful CLI tool to build Minecraft modpacks intelligently ---
-without worrying about compatibility.
+A powerful CLI tool to build Minecraft modpacks intelligently — without worrying about compatibility, dependencies, or version conflicts.
 
-------------------------------------------------------------------------
+---
 
-## ✨ Features
+## ✨ Why MMPM?
 
--   🔍 Search mods from Modrinth\
--   ➕ Add mods without selecting versions\
--   🧠 Automatically resolve best loader & Minecraft version\
--   📦 Generate deterministic lock file (`modpack-lock.json`)\
--   ⬇️ Install all mods with one command\
--   🔗 Handles dependencies + ecosystem rules (e.g. Fabric API)
+Creating Minecraft modpacks manually is painful:
+- ❌ Version conflicts  
+- ❌ Loader incompatibility  
+- ❌ Missing dependencies  
+- ❌ Trial-and-error setup  
 
-------------------------------------------------------------------------
+**MMPM solves all of this automatically.**
+
+> Just pick your mods. MMPM handles the rest.
+
+---
+
+## 🔥 Features
+
+- 🔍 Search mods directly from Modrinth  
+- ➕ Add mods without choosing versions  
+- 🧠 Automatically resolves:
+  - Best Minecraft version  
+  - Compatible loader (Fabric/Forge/etc.)  
+- 📦 Deterministic lock file (`modpack-lock.json`)  
+- 🔗 Handles dependencies (including implicit ones like Fabric API)  
+- ⚡ One-command installation  
+- 🚀 Fast downloads with concurrency  
+
+---
 
 ## 📦 Installation
 
-``` bash
-git clone https://github.com/your-username/mmpm.git
-cd mmpm
-npm install
-npm link
+### Option 1 — Use without installing (recommended)
+
+```bash
+npx @varaddhoke/mmpm init -y
 ```
 
-Now you can use:
+### Option 2 — Global install
 
-``` bash
+```bash
+npm install -g @varaddhoke/mmpm
+```
+
+Then:
+
+```bash
 mmpm
 ```
 
-------------------------------------------------------------------------
+---
 
 ## ⚡ Quick Start
 
-``` bash
+```bash
 mmpm init -y
 mmpm add sodium
 mmpm add lithium
@@ -44,26 +65,28 @@ mmpm lock
 mmpm install
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 🧠 How It Works
 
-    init → add → resolve → lock → install
+```
+init → add → resolve → lock → install
+```
 
-------------------------------------------------------------------------
+---
 
 ## 🛠️ Commands
 
-  Command                     Description
-  --------------------------- ----------------------------
-  mmpm init                    Initialize modpack
-  mmpm add `<mod>`{=html}      Add mod
-  mmpm search `<mod>`{=html}   Search mods
-  mmpm resolve                 Resolve best configuration
-  mmpm lock                    Generate lock file
-  mmpm install                 Install mods
+| Command | Description |
+|--------|------------|
+| `mmpm init` | Initialize a modpack |
+| `mmpm add <mod>` | Add a mod |
+| `mmpm search <mod>` | Search mods |
+| `mmpm resolve` | Resolve compatibility |
+| `mmpm lock` | Generate lock file |
+| `mmpm install` | Install mods |
 
-------------------------------------------------------------------------
+---
 
 ## 📜 License
 
