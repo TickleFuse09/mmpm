@@ -1,8 +1,8 @@
-import { getProjectVersions, getProject } from "../api/modrinth.js";
-import { resolveProject } from "./modService.js";
-import { resolveFullModpack } from "../engine/resolver.js";
 import fs from "fs";
 import path from "path";
+import { getProject, getProjectVersions } from "../api/modrinth.js";
+import { resolveFullModpack } from "../engine/resolver.js";
+import { resolveProject } from "./modService.js";
 
 const FILE_PATH = path.resolve("modpack-lock.json");
 
