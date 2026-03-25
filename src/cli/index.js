@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import { program } from "commander";
 import { createInterface } from "readline";
-import { getModpack, isModpackInitialized } from "../core/modpack.js";
+import { getModpack, isModpackInitialized, updateModpackConfig } from "../core/modpack.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { buildDependencyGraph } from "../engine/graphBuilder.js";
 import { resolveBestCombination, resolveFullModpack } from "../engine/resolver.js";
@@ -185,6 +185,10 @@ program
       });
 
       console.log("");
+
+      // Persist resolved configuration into modpack.json
+      updateModpackConfig(result.loader, result.mcVersion);
+      console.log(chalk.green.bold("✔ Saved resolved configuration to modpack.json\n"));
     } catch (err) {
       console.error("[ERROR]", err.message);
     }

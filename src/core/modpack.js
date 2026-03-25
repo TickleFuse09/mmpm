@@ -117,3 +117,11 @@ export function addToModpack(slug) {
 
   return modpack;
 }
+
+export function updateModpackConfig(loader, mcVersion) {
+  const modpack = loadModpack();
+  modpack.loader = loader;
+  modpack.mcVersion = mcVersion;
+  saveModpack(modpack);
+  return modpack;
+}
