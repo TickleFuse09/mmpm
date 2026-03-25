@@ -1,6 +1,6 @@
 {
   "name": "@varaddhoke/mmpm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Minecraft Mod Package Manager (MMPM)- CLI tool to build modpacks intelligently",
   "license": "MIT",
   "author": "",
