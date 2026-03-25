@@ -11,6 +11,7 @@ import { checkExistingModpack, initializeModpack, promptOverwrite } from "../ser
 import { addMod } from "../services/modpackService.js";
 import * as modService from "../services/modService.js";
 import * as searchService from "../services/searchService.js";
+import { generateLockFile, saveLockFile } from "../services/lockService.js";
 import { printGraph } from "../utils/graphPrinter.js";
 
 program
@@ -185,6 +186,52 @@ program
       console.log("");
     } catch (err) {
       console.error("[ERROR]", err.message);
+    }
+  });
+
+program
+  .command("lock")
+  .description("Generate modpack-lock.json with full dependency resolution")
+  .action(async () => {
+    try {
+      if (!isModpackInitialized()) {
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        return;
+      }
+
+      const modpack = getModpack();
+
+      if (modpack.mods.length === 0) {
+        console.error(chalk.red.bold("[ERROR]"), "No mods in modpack");
+        return;
+      }
+
+      if (!modpack.loader || !modpack.mcVersion) {
+        console.error(chalk.red.bold("[ERROR]"), "Modpack must have loader and mcVersion set");
+        return;
+      }
+
+      console.log(chalk.blue.bold("\n🔒 Generating lock file...\n"));
+
+      const lockFile = await generateLockFile(modpack);
+      const filePath = saveLockFile(lockFile);
+
+      console.log(chalk.green.bold("✔ modpack-lock.json generated\n"));
+
+      console.log(`Loader: ${lockFile.loader}`);
+      console.log(`Minecraft: ${lockFile.mcVersion}`);
+      console.log(`Total mods (with dependencies): ${lockFile.mods.length}\n`);
+
+      console.log("Mods:");
+      lockFile.mods.forEach((mod) => {
+        const depCount = mod.dependencies.length;
+        const depStr = depCount > 0 ? ` (${depCount} dependencies)` : "";
+        console.log(`  • ${mod.slug} ${chalk.dim(mod.version_number)}${depStr}`);
+      });
+
+      console.log("");
+    } catch (err) {
+      console.error(chalk.red.bold("[ERROR]"), err.message);
     }
   });
 
