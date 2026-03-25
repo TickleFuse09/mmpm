@@ -88,6 +88,6 @@ init → add → resolve → lock → install
 
 ---
 
-## 📜 License
-
-MIT License
+![npm](https://img.shields.io/npm/v/@varaddhoke/mmpm)
+![downloads](https://img.shields.io/npm/dw/@varaddhoke/mmpm)
+![license](https://img.shields.io/github/license/your-username/mmpm)
