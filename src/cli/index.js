@@ -7,6 +7,7 @@ import { getModpack, isModpackInitialized } from "../core/modpack.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { buildDependencyGraph } from "../engine/graphBuilder.js";
 import { resolveBestCombination, resolveFullModpack } from "../engine/resolver.js";
+import { installMods } from "../services/installService.js";
 import { generateLockFile, saveLockFile } from "../services/lockService.js";
 import { checkExistingModpack, initializeModpack, promptOverwrite } from "../services/modpackInitService.js";
 import { addMod } from "../services/modpackService.js";
@@ -230,6 +231,17 @@ program
       });
 
       console.log("");
+    } catch (err) {
+      console.error(chalk.red.bold("[ERROR]"), err.message);
+    }
+  });
+
+program
+  .command("install")
+  .description("Download and install all mods from modpack-lock.json")
+  .action(async () => {
+    try {
+      await installMods();
     } catch (err) {
       console.error(chalk.red.bold("[ERROR]"), err.message);
     }
