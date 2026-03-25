@@ -1,4 +1,4 @@
-import { searchMods, getProjectVersions } from "../api/modrinth.js";
+import { getProjectVersions, searchMods } from "../api/modrinth.js";
 
 export async function resolveProject(query) {
   const searchResult = await searchMods(query);

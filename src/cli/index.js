@@ -7,10 +7,10 @@ import { getModpack, isModpackInitialized } from "../core/modpack.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { buildDependencyGraph } from "../engine/graphBuilder.js";
 import { resolveBestCombination, resolveFullModpack } from "../engine/resolver.js";
+import { checkExistingModpack, initializeModpack, promptOverwrite } from "../services/modpackInitService.js";
 import { addMod } from "../services/modpackService.js";
 import * as modService from "../services/modService.js";
 import * as searchService from "../services/searchService.js";
-import { initializeModpack, checkExistingModpack, promptOverwrite } from "../services/modpackInitService.js";
 import { printGraph } from "../utils/graphPrinter.js";
 
 program
