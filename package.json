@@ -1,12 +1,12 @@
 {
-  "name": "packsmith",
+  "name": "mmpm",
   "version": "1.0.0",
-  "description": "Mod Packer Engine (MPE) - Intelligent Minecraft Modpack Builder",
-  "license": "ISC",
+  "description": "Minecraft Mod Package Manager (MMPM)",
+  "license": "MIT",
   "author": "",
   "type": "module",
   "bin": {
-    "packsmith": "./src/cli/index.js"
+    "mmpm": "./src/cli/index.js"
   },
   "main": "index.js",
   "scripts": {

@@ -1,4 +1,4 @@
-# 🚀 MPE (Mod Packer Engine)
+# 🚀 MMPM (Minecraft Mod Package Manager)
 
 A powerful CLI tool to build Minecraft modpacks intelligently ---
 without worrying about compatibility.
@@ -19,8 +19,8 @@ without worrying about compatibility.
 ## 📦 Installation
 
 ``` bash
-git clone https://github.com/your-username/packsmith.git
-cd packsmith
+git clone https://github.com/your-username/mmpm.git
+cd mmpm
 npm install
 npm link
 ```
@@ -28,7 +28,7 @@ npm link
 Now you can use:
 
 ``` bash
-packsmith
+mmpm
 ```
 
 ------------------------------------------------------------------------
@@ -36,12 +36,12 @@ packsmith
 ## ⚡ Quick Start
 
 ``` bash
-packsmith init -y
-packsmith add sodium
-packsmith add lithium
-packsmith resolve
-packsmith lock
-packsmith install
+mmpm init -y
+mmpm add sodium
+mmpm add lithium
+mmpm resolve
+mmpm lock
+mmpm install
 ```
 
 ------------------------------------------------------------------------
@@ -56,12 +56,12 @@ packsmith install
 
   Command                     Description
   --------------------------- ----------------------------
-  packsmith init                    Initialize modpack
-  packsmith add `<mod>`{=html}      Add mod
-  packsmith search `<mod>`{=html}   Search mods
-  packsmith resolve                 Resolve best configuration
-  packsmith lock                    Generate lock file
-  packsmith install                 Install mods
+  mmpm init                    Initialize modpack
+  mmpm add `<mod>`{=html}      Add mod
+  mmpm search `<mod>`{=html}   Search mods
+  mmpm resolve                 Resolve best configuration
+  mmpm lock                    Generate lock file
+  mmpm install                 Install mods
 
 ------------------------------------------------------------------------
 
