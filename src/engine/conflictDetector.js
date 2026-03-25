@@ -55,3 +55,35 @@ export async function detectLoaderConflicts(modSlugs) {
     commonCombos,
   };
 }
+
+export async function verifyModpackConstraints(modSlugs, loader = null, mcVersion = null) {
+  const loaderViolations = [];
+  const mcVersionViolations = [];
+
+  for (const slug of modSlugs) {
+    const project = await resolveProject(slug);
+    const versions = await getProjectVersions(project.project_id);
+
+    const versionLoaders = new Set();
+    const versionMcVersions = new Set();
+
+    versions.forEach((version) => {
+      version.loaders.forEach((l) => versionLoaders.add(l));
+      version.game_versions.forEach((v) => versionMcVersions.add(v));
+    });
+
+    if (loader && !versionLoaders.has(loader)) {
+      loaderViolations.push({ mod: slug, loader });
+    }
+
+    if (mcVersion && !versionMcVersions.has(mcVersion)) {
+      mcVersionViolations.push({ mod: slug, mcVersion });
+    }
+  }
+
+  return {
+    valid: loaderViolations.length === 0 && mcVersionViolations.length === 0,
+    loaderViolations,
+    mcVersionViolations,
+  };
+}

@@ -96,9 +96,14 @@ program
 
       const mod = await addMod(modName);
 
-      console.log(`[OK] Added: ${mod.name}`);
+      console.log(chalk.green(`✔ Added: ${mod.name}`));
 
       const modpack = getModpack();
+
+      if (modpack.loader !== null || modpack.mcVersion !== null) {
+        console.log(chalk.green("✔ All mods compatible with selected constraints"));
+        return;
+      }
 
       if (modpack.mods.length > 1) {
         const result = await detectLoaderConflicts(modpack.mods);
