@@ -3,19 +3,43 @@
 import chalk from "chalk";
 import { program } from "commander";
 import { createInterface } from "readline";
-import { getModpack } from "../core/modpack.js";
+import { getModpack, isModpackInitialized } from "../core/modpack.js";
 import { detectLoaderConflicts } from "../engine/conflictDetector.js";
 import { buildDependencyGraph } from "../engine/graphBuilder.js";
 import { resolveBestCombination, resolveFullModpack } from "../engine/resolver.js";
 import { addMod } from "../services/modpackService.js";
 import * as modService from "../services/modService.js";
 import * as searchService from "../services/searchService.js";
+import { initializeModpack, checkExistingModpack, promptOverwrite } from "../services/modpackInitService.js";
 import { printGraph } from "../utils/graphPrinter.js";
 
 program
   .name("mpe")
   .description("Mod Packer Engine CLI")
   .version("1.0.0");
+
+program
+  .command("init")
+  .description("Initialize a new modpack")
+  .option("-y, --yes", "Skip prompts and use defaults")
+  .action(async (options) => {
+    try {
+      const exists = await checkExistingModpack();
+
+      if (exists && !options.yes) {
+        const shouldOverwrite = await promptOverwrite();
+        if (!shouldOverwrite) {
+          console.log(chalk.yellow("Init cancelled\n"));
+          return;
+        }
+      }
+
+      const modpack = await initializeModpack(!options.yes);
+      console.log(chalk.green.bold("✔ modpack.json created\n"));
+    } catch (err) {
+      console.error(chalk.red.bold("[ERROR]"), err.message);
+    }
+  });
 
 program
   .command("search <query>")
@@ -65,6 +89,11 @@ program
   .description("Add mod to modpack")
   .action(async (modName) => {
     try {
+      if (!isModpackInitialized()) {
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        return;
+      }
+
       const mod = await addMod(modName);
 
       console.log(`[OK] Added: ${mod.name}`);
@@ -126,6 +155,11 @@ program
   .description("Resolve full modpack with best versions")
   .action(async () => {
     try {
+      if (!isModpackInitialized()) {
+        console.error(chalk.red.bold("[ERROR]"), "Modpack not initialized. Run 'mpe init' first");
+        return;
+      }
+
       const modpack = getModpack();
 
       const result = await resolveFullModpack(modpack.mods);

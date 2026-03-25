@@ -1,7 +1,8 @@
 import { searchMods, getProjectVersions } from "../api/modrinth.js";
 
 export async function resolveProject(query) {
-  const results = await searchMods(query);
+  const searchResult = await searchMods(query);
+  const results = searchResult.hits;
 
   if (!results.length) {
     throw new Error("No mods found");
