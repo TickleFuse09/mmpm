@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
+import chalk from "chalk";
 import { program } from "commander";
-import { printModDetails } from "../utils/formatter.js";
-import { buildDependencyGraph } from "../engine/graphBuilder.js";
-import * as modService from "../services/modService.js";
-import { printGraph } from "../utils/graphPrinter.js";
-import { addMod } from "../services/modpackService.js";
-import { detectLoaderConflicts } from "../engine/conflictDetector.js";
+import { createInterface } from "readline";
 import { getModpack } from "../core/modpack.js";
-import { resolveFullModpack, resolveBestCombination } from "../engine/resolver.js";
+import { detectLoaderConflicts } from "../engine/conflictDetector.js";
+import { buildDependencyGraph } from "../engine/graphBuilder.js";
+import { resolveBestCombination, resolveFullModpack } from "../engine/resolver.js";
+import { addMod } from "../services/modpackService.js";
+import * as modService from "../services/modService.js";
+import * as searchService from "../services/searchService.js";
+import { printGraph } from "../utils/graphPrinter.js";
 
 program
   .name("mpe")
@@ -16,21 +18,27 @@ program
   .version("1.0.0");
 
 program
-  .command("search <modName>")
-  .description("Search a mod and show details")
-  .option("-l, --loader <loader>", "mod loader (fabric/forge)")
-  .option("-v, --version <mcVersion>", "minecraft version")
-  .action(async (modName, options) => {
+  .command("search <query>")
+  .description("Interactive paginated search for mods on Modrinth")
+  .action(async (query) => {
     try {
-      const filters = {
-        loader: options.loader,
-        mcVersion: options.version,
-      };
+      // Fetch all search results
+      console.log(chalk.blue.bold(`\n🔍 Searching for "${query}"...\n`));
+      const { allResults, totalHits } = await searchService.performSearch(query);
 
-      const mod = await modService.getModDetails(modName, filters);
-      printModDetails(mod);
+      if (allResults.length === 0) {
+        console.log(chalk.red.bold("❌ No mods found matching your query\n"));
+        return;
+      }
+
+      console.log(chalk.green.bold(`✓ Found ${totalHits} results\n`));
+
+      // Start interactive pagination
+      await startInteractiveSearch(allResults);
+      searchService.clearVersionCache();
     } catch (err) {
-      console.error("[ERROR]", err.message);
+      console.error(chalk.red.bold("[ERROR]"), err.message);
+      searchService.clearVersionCache();
     }
   });
 
@@ -143,3 +151,82 @@ program
   });
 
 program.parse(process.argv);
+
+/**
+ * Start interactive search mode with pagination
+ * @param {Array} allResults
+ */
+async function startInteractiveSearch(allResults) {
+  let currentPage = 1;
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const askForCommand = () => {
+    rl.question(
+      chalk.cyan.bold("\n► ") + chalk.dim('("next", "prev", "exit"): '),
+      async (command) => {
+        command = command.trim().toLowerCase();
+
+        try {
+          if (command === "exit") {
+            console.log(chalk.green.bold("\n✓ Exiting search mode\n"));
+            rl.close();
+            return;
+          }
+
+          if (command === "next") {
+            currentPage += 1;
+          } else if (command === "prev") {
+            currentPage -= 1;
+          } else {
+            console.log(
+              chalk.yellow.bold("[HELP]") +
+                chalk.dim(
+                  ' Valid commands: "next" | "prev" | "exit"'
+                )
+            );
+            askForCommand();
+            return;
+          }
+
+          // Display the requested page
+          const { results, pageInfo } = await searchService.getPaginatedResults(
+            allResults,
+            currentPage
+          );
+
+          console.log("\n" + results);
+          const pageStr =
+            chalk.bold.cyanBright(
+              `Page ${pageInfo.currentPage} of ${pageInfo.totalPages}`
+            ) +
+            chalk.dim(` (${pageInfo.totalResults} total)\n`);
+          console.log(pageStr);
+
+          askForCommand();
+        } catch (err) {
+          console.error(chalk.red.bold("[ERROR]"), err.message);
+          rl.close();
+        }
+      }
+    );
+  };
+
+  // Display first page
+  const { results, pageInfo } = await searchService.getPaginatedResults(
+    allResults,
+    currentPage
+  );
+
+  console.log("\n" + results);
+  const pageStr =
+    chalk.bold.cyanBright(
+      `Page ${pageInfo.currentPage} of ${pageInfo.totalPages}`
+    ) +
+    chalk.dim(` (${pageInfo.totalResults} total)\n`);
+  console.log(pageStr);
+
+  askForCommand();
+}

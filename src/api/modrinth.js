@@ -14,12 +14,15 @@ function formatApiError(action, err) {
   return new Error(`Failed to ${action}${statusText}: ${details}`);
 }
 
-export async function searchMods(query) {
+export async function searchMods(query, limit = 100, offset = 0) {
   try {
     const res = await axios.get(`${BASE_URL}/search`, {
-      params: { query, limit: 5 },
+      params: { query, limit, offset },
     });
-    return res.data.hits;
+    return {
+      hits: res.data.hits,
+      total_hits: res.data.total_hits,
+    };
   } catch (err) {
     throw formatApiError("search mods", err);
   }
