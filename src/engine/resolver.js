@@ -1,6 +1,11 @@
 import { getProjectVersions } from "../api/modrinth.js";
 import { resolveProject } from "../services/modService.js";
 
+const DEFAULT_CONSTRAINTS = {
+  loader: null,
+  mcVersion: null,
+};
+
 export function resolveBestCombination(conflictResult) {
   const { commonCombos } = conflictResult;
 
@@ -18,19 +23,97 @@ export function resolveBestCombination(conflictResult) {
   return bestCombo;
 }
 
-export async function resolveFullModpack(modSlugs) {
+function isMinecraftVersion(version) {
+  if (typeof version !== "string") return false;
+  // valid pure Minecraft versions (1.XX or 1.XX.X), reject loader versions like 26.1.
+  return /^1(?:\.\d+){1,2}$/.test(version);
+}
+
+function getStableVersions(versions) {
+  return versions.filter(
+    (version) =>
+      version.version_type === "release" &&
+      Array.isArray(version.files) &&
+      version.files.length > 0
+  );
+}
+
+function matchingGameVersions(version) {
+  return (version.game_versions || []).filter(isMinecraftVersion);
+}
+
+function matchesConstraints(version, constraints) {
+  if (!constraints) {
+    return true;
+  }
+
+  const { loader, mcVersion } = constraints;
+
+  if (loader && !version.loaders.includes(loader)) {
+    return false;
+  }
+
+  if (mcVersion && !version.game_versions.includes(mcVersion)) {
+    return false;
+  }
+
+  return true;
+}
+
+function pickBestVersion(versions) {
+  return versions
+    .slice()
+    .sort(compareProjectVersions)[0];
+}
+
+export async function resolveFullModpack(modSlugs, constraints = DEFAULT_CONSTRAINTS) {
+  const normalizedConstraints = {
+    loader: constraints?.loader || null,
+    mcVersion: constraints?.mcVersion || null,
+  };
+
   const modData = [];
 
   for (const slug of modSlugs) {
     const project = await resolveProject(slug);
-    const versions = await getProjectVersions(project.project_id);
+    const versions = getStableVersions(
+      await getProjectVersions(project.project_id)
+    );
 
-    modData.push({
-      slug,
-      versions,
-    });
+    const normalizedVersions = versions.map((version) => ({
+      ...version,
+      game_versions: matchingGameVersions(version),
+    }));
+
+    const matchingVersions = normalizedVersions.filter((version) =>
+      matchesConstraints(version, normalizedConstraints)
+    );
+
+    modData.push({ slug, versions: matchingVersions });
   }
 
+  // Strict mode: both generator values set
+  if (normalizedConstraints.loader && normalizedConstraints.mcVersion) {
+    const resolvedMods = {};
+
+    for (const { slug, versions } of modData) {
+      const best = pickBestVersion(versions);
+
+      if (!best) {
+        return null;
+      }
+
+      resolvedMods[slug] = best.name || best.version_number || "Unknown";
+    }
+
+    return {
+      loader: normalizedConstraints.loader,
+      mcVersion: normalizedConstraints.mcVersion,
+      mods: resolvedMods,
+    };
+  }
+
+  // Flexible mode (including partial constraints + no constraints)
   const comboMap = new Map();
 
   modData.forEach(({ versions }) => {
@@ -56,13 +139,12 @@ export async function resolveFullModpack(modSlugs) {
     if (count !== modData.length) continue;
 
     const [loader, mcVersion] = key.split("|");
+
     const isValid = modData.every(({ versions }) =>
       versions.some(
         (version) =>
           version.loaders.includes(loader) &&
-          version.game_versions.includes(mcVersion) &&
-          version.files &&
-          version.files.length > 0
+          version.game_versions.includes(mcVersion)
       )
     );
 
@@ -76,10 +158,9 @@ export async function resolveFullModpack(modSlugs) {
   }
 
   validCombos.sort((a, b) => compareReleaseVersions(b.mcVersion, a.mcVersion));
-
   const best = validCombos[0];
-  const resolvedMods = {};
 
+  const resolvedMods = {};
   for (const { slug, versions } of modData) {
     const candidates = versions.filter(
       (version) =>
@@ -87,9 +168,8 @@ export async function resolveFullModpack(modSlugs) {
         version.game_versions.includes(best.mcVersion)
     );
 
-    const match = candidates.sort(compareProjectVersions)[0];
-
-    resolvedMods[slug] = match?.name || "No matching version";
+    const match = pickBestVersion(candidates);
+    resolvedMods[slug] = match?.name || match?.version_number || "No matching version";
   }
 
   return {

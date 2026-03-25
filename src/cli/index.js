@@ -142,11 +142,7 @@ program
 
         const best = resolveBestCombination(result);
 
-        if (best) {
-          console.log("[OK] Suggested setup:");
-          console.log(`- Loader: ${best.loader}`);
-          console.log(`- Minecraft Version: ${best.mcVersion}\n`);
-        } else {
+        if (!best) {
           console.log("[ERROR] Cannot auto-resolve due to conflicts\n");
         }
       }
@@ -167,10 +163,13 @@ program
 
       const modpack = getModpack();
 
-      const result = await resolveFullModpack(modpack.mods);
+      const result = await resolveFullModpack(modpack.mods, {
+        loader: modpack.loader,
+        mcVersion: modpack.mcVersion,
+      });
 
       if (!result) {
-        console.log("[ERROR] No compatible configuration found\n");
+        console.log("❌ No compatible configuration found under given constraints\n");
         return;
       }
 

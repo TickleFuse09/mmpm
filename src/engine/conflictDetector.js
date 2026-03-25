@@ -1,6 +1,11 @@
 import { getProjectVersions } from "../api/modrinth.js";
 import { resolveProject } from "../services/modService.js";
 
+function isMinecraftVersion(version) {
+  if (typeof version !== "string") return false;
+  return /^1(?:\.\d+){1,2}$/.test(version);
+}
+
 export async function detectLoaderConflicts(modSlugs) {
   const loaderSets = [];
 
@@ -14,7 +19,10 @@ export async function detectLoaderConflicts(modSlugs) {
 
     versions.forEach((version) => {
       version.loaders.forEach((loader) => loaders.add(loader));
+
       version.game_versions.forEach((mcVersion) => {
+        if (!isMinecraftVersion(mcVersion)) return;
+
         mcVersions.add(mcVersion);
 
         version.loaders.forEach((loader) => {
@@ -69,7 +77,11 @@ export async function verifyModpackConstraints(modSlugs, loader = null, mcVersio
 
     versions.forEach((version) => {
       version.loaders.forEach((l) => versionLoaders.add(l));
-      version.game_versions.forEach((v) => versionMcVersions.add(v));
+      version.game_versions.forEach((v) => {
+        if (isMinecraftVersion(v)) {
+          versionMcVersions.add(v);
+        }
+      });
     });
 
     if (loader && !versionLoaders.has(loader)) {

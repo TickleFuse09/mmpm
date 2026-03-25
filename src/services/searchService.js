@@ -26,13 +26,20 @@ async function getAndCacheVersions(projectId) {
  * @param {Array} versions
  * @returns {Object} {loaders: Set, gameVersions: Set}
  */
+function isMinecraftVersion(version) {
+  if (typeof version !== "string") return false;
+  return /^1(?:\.\d+){1,2}$/.test(version);
+}
+
 function aggregateVersionData(versions) {
   const loaders = new Set();
   const gameVersions = new Set();
 
   versions.forEach((version) => {
     version.loaders?.forEach((loader) => loaders.add(loader));
-    version.game_versions?.forEach((gv) => gameVersions.add(gv));
+    version.game_versions
+      ?.filter(isMinecraftVersion)
+      .forEach((gv) => gameVersions.add(gv));
   });
 
   return {
