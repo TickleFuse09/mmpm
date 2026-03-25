@@ -165,6 +165,83 @@ async function resolveDependenciesRecursive(
 }
 
 /**
+ * Ensure loader-specific implicit mods are present in lock list.
+ * For fabric this adds fabric-api if missing.
+ * @param {Array} mods - Current lock mods array
+ * @param {string} loader
+ * @param {string} mcVersion
+ * @param {Map} versionCache
+ * @returns {Promise<Array>} mod entries (possibly modified)
+ */
+async function ensureImplicitDependencies(mods, loader, mcVersion, versionCache) {
+  if (!loader || loader.toLowerCase() !== "fabric") {
+    return mods;
+  }
+
+  const normalized = (slug) => String(slug || "").toLowerCase();
+  const hasFabricApi = mods.some(
+    (m) => normalized(m.slug) === "fabric-api" || normalized(m.project_id) === "fabric-api"
+  );
+
+  if (hasFabricApi) {
+    return mods;
+  }
+
+  // Find fabric-api project
+  let fabricApiProject;
+  try {
+    fabricApiProject = await resolveProject("fabric-api");
+  } catch (err) {
+    console.warn(`Warning: Could not resolve fabric-api project: ${err.message}`);
+    return mods;
+  }
+
+  const projectId = fabricApiProject.project_id;
+  let versions = versionCache.get(projectId);
+  if (!versions) {
+    versions = await getProjectVersions(projectId);
+    versionCache.set(projectId, versions);
+  }
+
+  const matchingVersions = versions
+    .filter(isValidLockVersion)
+    .filter((v) => v.loaders.includes(loader))
+    .filter((v) => v.game_versions.includes(mcVersion));
+
+  if (matchingVersions.length === 0) {
+    console.warn(
+      `Warning: No fabric-api version found for loader=${loader}, mcVersion=${mcVersion}`
+    );
+    return mods;
+  }
+
+  const best = matchingVersions.sort(
+    (a, b) =>
+      new Date(b.date_published || 0).getTime() -
+      new Date(a.date_published || 0).getTime()
+  )[0];
+
+  const dependencies = await resolveDependenciesRecursive(
+    projectId,
+    best.id,
+    { loader, mcVersion },
+    new Set(),
+    versionCache
+  );
+
+  const fabricApiEntry = {
+    slug: fabricApiProject.slug,
+    project_id: projectId,
+    version_id: best.id,
+    version_number: best.version_number,
+    download_url: getDownloadUrl(best),
+    dependencies,
+  };
+
+  return [...mods, fabricApiEntry];
+}
+
+/**
  * Generate a deterministic lock file
  * @param {Object} modpack - Modpack object from modpack.json
  * @returns {Promise<Object>} Lock file object
@@ -350,10 +427,17 @@ export async function generateLockFile(modpack) {
     }
   }
 
+  const finalMods = await ensureImplicitDependencies(
+    allLockMods,
+    loader,
+    mcVersion,
+    versionCache
+  );
+
   const lockFile = {
     loader,
     mcVersion,
-    mods: allLockMods,
+    mods: finalMods,
   };
 
   return lockFile;
